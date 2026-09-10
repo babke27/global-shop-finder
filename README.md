@@ -1,0 +1,1 @@
+# global-shop-finder
