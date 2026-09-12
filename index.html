@@ -1,287 +1,1104 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Global Shop Finder</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #172033;
+      background: #f6f7fb;
+      color: #171a24;
     }
+
+    /* HEADER */
 
     header {
-      padding: 22px 7%;
-      background: #ffffff;
-      border-bottom: 1px solid #e5e9f2;
-      font-weight: 700;
-      font-size: 20px;
-    }
-
-    header span { color: #3563e9; }
-
-    main {
-      width: min(900px, 92%);
-      margin: 70px auto;
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 12px;
-      font-size: clamp(32px, 6vw, 48px);
-      letter-spacing: -1.5px;
-    }
-
-    .intro {
-      color: #657089;
-      font-size: 17px;
-      line-height: 1.6;
-      margin: 0 auto 30px;
-      max-width: 620px;
-    }
-
-    form {
-      display: flex;
-      gap: 10px;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    input {
-      flex: 1;
-      min-width: 0;
-      padding: 17px 18px;
-      border: 1px solid #d8deea;
-      border-radius: 12px;
       background: white;
-      font-size: 16px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #3563e9;
-      box-shadow: 0 0 0 3px #3563e922;
-    }
-
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 0 24px;
-      background: #3563e9;
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button:hover { background: #244bc2; }
-
-    .hint {
-      margin-top: 12px;
-      color: #7b8498;
-      font-size: 13px;
-    }
-
-    #results {
-      display: none;
-      margin-top: 38px;
-      text-align: left;
-    }
-
-    #results h2 {
-      font-size: 22px;
-      margin-bottom: 8px;
-    }
-
-    #searchedFor {
-      color: #657089;
-      margin-bottom: 20px;
-      overflow-wrap: anywhere;
-    }
-
-    .store-list {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .store {
+      border-bottom: 1px solid #e8e8ee;
+      padding: 18px 6%;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 20px;
-      background: white;
-      border: 1px solid #e2e7f0;
-      border-radius: 14px;
     }
 
-    .store-name { font-weight: 700; }
-    .store-note {
-      margin-top: 5px;
-      color: #778198;
-      font-size: 13px;
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
     }
 
-    .store a {
-      flex-shrink: 0;
-      display: inline-block;
-      padding: 10px 13px;
-      border-radius: 9px;
-      background: #edf2ff;
-      color: #2853d7;
-      text-decoration: none;
-      font-weight: 700;
+    .logo span {
+      color: #3b63f3;
+    }
+
+    .tagline {
+      color: #7b8190;
       font-size: 14px;
     }
 
-    .store a:hover { background: #dfe8ff; }
+    /* HERO */
 
-    .notice {
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      background: #fff8e8;
-      color: #795b19;
-      font-size: 13px;
-      line-height: 1.5;
+    .hero {
+      text-align: center;
+      padding: 70px 20px 45px;
+      background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f6f7fb 100%
+      );
     }
 
-    footer {
-      margin-top: 65px;
-      color: #8a93a5;
-      font-size: 13px;
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 58px);
+      letter-spacing: -2px;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: #6f7585;
+      max-width: 650px;
+      margin: auto;
       line-height: 1.6;
     }
 
-    @media (max-width: 600px) {
-      main { margin-top: 45px; }
-      form { flex-direction: column; }
-      input, button { min-height: 54px; }
-      .store-list { grid-template-columns: 1fr; }
+    /* SEARCH */
+
+    .search-container {
+      width: min(1050px, 92%);
+      margin: 35px auto 0;
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+
+      box-shadow:
+        0 8px 30px rgba(0,0,0,0.07);
+
+      display: grid;
+      grid-template-columns: 1fr 180px 150px;
+      gap: 12px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 16px;
+      border-radius: 11px;
+      border: 1px solid #dfe2ea;
+      font-size: 15px;
+      outline: none;
+      background: white;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #3b63f3;
+    }
+
+    .search-button {
+      border: none;
+      border-radius: 11px;
+      background: #3b63f3;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .search-button:hover {
+      background: #284bd0;
+    }
+
+    /* MAIN */
+
+    .main {
+      width: min(1200px, 92%);
+      margin: 40px auto 80px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    .result-info h2 {
+      font-size: 23px;
+      margin-bottom: 5px;
+    }
+
+    .result-info p {
+      color: #777d8e;
+      font-size: 14px;
+    }
+
+    .sort {
+      width: 220px;
+    }
+
+    /* CONTENT */
+
+    .content {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 25px;
+    }
+
+    /* FILTERS */
+
+    .filters {
+      background: white;
+      padding: 20px;
+      border: 1px solid #e7e8ee;
+      border-radius: 14px;
+      height: fit-content;
+    }
+
+    .filters h3 {
+      margin-bottom: 18px;
+    }
+
+    .filter-section {
+      border-top: 1px solid #ededf2;
+      padding-top: 18px;
+      margin-top: 18px;
+    }
+
+    .filter-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+      color: #555b6c;
+      font-size: 14px;
+    }
+
+    .check input {
+      width: auto;
+    }
+
+    /* PRODUCTS */
+
+    .products {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 15px;
+      border: 1px solid #e5e7ed;
+      overflow: hidden;
+      transition: 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+
+      box-shadow:
+        0 9px 30px rgba(0,0,0,0.08);
+    }
+
+    .image-box {
+      width: 100%;
+      height: 230px;
+      background: #f3f3f5;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-body {
+      padding: 17px;
+    }
+
+    .store {
+      font-size: 12px;
+      font-weight: 800;
+      color: #3b63f3;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .product-title {
+      font-size: 15px;
+      line-height: 1.45;
+      min-height: 44px;
+      margin-bottom: 12px;
+    }
+
+    .rating {
+      color: #e09b00;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      color: #6e7483;
+      font-size: 13px;
+    }
+
+    .total {
+      margin-top: 12px;
+      border-top: 1px solid #eeeeef;
+      padding-top: 12px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-label {
+      font-size: 13px;
+      color: #6b7180;
+    }
+
+    .total-price {
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .unknown {
+      font-size: 13px;
+      color: #c47a00;
+      font-weight: 700;
+    }
+
+    .deal-button {
+      display: block;
+      margin-top: 15px;
+      width: 100%;
+      text-align: center;
+      padding: 12px;
+
+      border-radius: 9px;
+      text-decoration: none;
+
+      background: #171a24;
+      color: white;
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .deal-button:hover {
+      background: #3b63f3;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 8px;
+
+      background: #e9fff0;
+      color: #1a7d3b;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      border-radius: 6px;
+      margin-bottom: 9px;
+    }
+
+    /* EMPTY */
+
+    .welcome {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 70px 20px;
+      color: #777d8e;
+    }
+
+    /* MOBILE */
+
+    @media(max-width:900px) {
+
+      .products {
+        grid-template-columns:
+          repeat(2,minmax(0,1fr));
+      }
+
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        display: none;
+      }
+    }
+
+    @media(max-width:650px) {
+
+      .search-container {
+        grid-template-columns: 1fr;
+      }
+
+      .search-button {
+        height: 52px;
+      }
+
+      .products {
+        grid-template-columns: 1fr;
+      }
+
+      .top-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .sort {
+        width: 100%;
+      }
+
+      .tagline {
+        display: none;
+      }
     }
   </style>
 </head>
+
 <body>
-  <header><span>Global</span> Shop Finder</header>
 
-  <main>
-    <h1>Find products across stores</h1>
-    <p class="intro">
-      Search for a product and compare what different online stores have to offer.
-      Start with one search — then explore the stores.
-    </p>
+<header>
 
-    <form id="searchForm">
-      <input
-        id="productInput"
-        type="search"
-        placeholder="Try “red water bottle”"
-        aria-label="Product to search for"
-        required
-      >
-      <button type="submit">Search</button>
-    </form>
+  <div class="logo">
+    <span>Global</span> Shop Finder
+  </div>
 
-    <div class="hint">Example: wireless headphones, phone case, water bottle</div>
+  <div class="tagline">
+    Compare products worldwide
+  </div>
 
-    <section id="results" aria-live="polite">
-      <h2>Search stores</h2>
-      <div id="searchedFor"></div>
-      <div class="store-list" id="storeList"></div>
-      <div class="notice">
-        These links open each store’s search results. Prices, availability, and
-        shipping to your country must be checked on the store’s website.
+</header>
+
+
+<section class="hero">
+
+  <h1>
+    Find the best price.
+  </h1>
+
+  <p>
+    Search products across global online stores
+    and compare product price, shipping and total cost.
+  </p>
+
+
+  <form
+    class="search-container"
+    id="searchForm"
+  >
+
+    <input
+      id="searchInput"
+      type="search"
+      placeholder="What are you looking for?"
+      required
+    >
+
+
+    <select id="country">
+
+      <option value="RS">
+        Serbia
+      </option>
+
+      <option value="US">
+        United States
+      </option>
+
+      <option value="GB">
+        United Kingdom
+      </option>
+
+      <option value="DE">
+        Germany
+      </option>
+
+      <option value="FR">
+        France
+      </option>
+
+      <option value="IT">
+        Italy
+      </option>
+
+      <option value="ES">
+        Spain
+      </option>
+
+    </select>
+
+
+    <button
+      class="search-button"
+      type="submit"
+    >
+      Search
+    </button>
+
+  </form>
+
+</section>
+
+
+<main class="main">
+
+  <div
+    class="top-controls"
+    id="controls"
+    style="display:none;"
+  >
+
+    <div class="result-info">
+
+      <h2 id="resultTitle">
+        Products
+      </h2>
+
+      <p id="resultCount">
+      </p>
+
+    </div>
+
+
+    <select
+      class="sort"
+      id="sortSelect"
+    >
+
+      <option value="total">
+        Lowest total price
+      </option>
+
+      <option value="price">
+        Lowest product price
+      </option>
+
+      <option value="rating">
+        Best rating
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="content">
+
+    <aside class="filters">
+
+      <h3>
+        Filters
+      </h3>
+
+
+      <div class="filter-section">
+
+        <div class="filter-title">
+          Store
+        </div>
+
+        <label class="check">
+          <input type="checkbox" checked>
+          AliExpress
+        </label>
+
+        <label class="check">
+          <input type="checkbox" checked>
+          Temu
+        </label>
+
+        <label class="check">
+          <input type="checkbox" checked>
+          Amazon
+        </label>
+
+        <label class="check">
+          <input type="checkbox" checked>
+          eBay
+        </label>
+
       </div>
+
+
+      <div class="filter-section">
+
+        <div class="filter-title">
+          Shipping
+        </div>
+
+        <label class="check">
+          <input type="checkbox">
+          Free shipping
+        </label>
+
+        <label class="check">
+          <input type="checkbox">
+          Known shipping only
+        </label>
+
+      </div>
+
+
+      <div class="filter-section">
+
+        <div class="filter-title">
+          Rating
+        </div>
+
+        <label class="check">
+          <input type="checkbox">
+          4★ and above
+        </label>
+
+      </div>
+
+    </aside>
+
+
+    <section
+      class="products"
+      id="products"
+    >
+
+      <div class="welcome">
+
+        Search for a product to compare prices
+        across multiple stores.
+
+      </div>
+
     </section>
 
-    <footer>
-      Global Shop Finder helps you discover products across online stores.<br>
-      Store links may open in a new tab.
-    </footer>
-  </main>
+  </div>
 
-  <script>
-    const form = document.getElementById("searchForm");
-    const input = document.getElementById("productInput");
-    const results = document.getElementById("results");
-    const searchedFor = document.getElementById("searchedFor");
-    const storeList = document.getElementById("storeList");
+</main>
 
-    const stores = [
-      {
-        name: "AliExpress",
-        note: "Search products",
-        url: query => "https://www.aliexpress.com/w/wholesale-" +
-          encodeURIComponent(query).replace(/%20/g, "-") + ".html"
-      },
-      {
-        name: "Temu",
-        note: "Search products",
-        url: query => "https://www.temu.com/search_result.html?search_key=" +
-          encodeURIComponent(query)
-      },
-      {
-        name: "Amazon",
-        note: "Search products",
-        url: query => "https://www.amazon.com/s?k=" + encodeURIComponent(query)
-      },
-      {
-        name: "eBay",
-        note: "Search products",
-        url: query => "https://www.ebay.com/sch/i.html?_nkw=" +
-          encodeURIComponent(query)
-      },
-      {
-        name: "Google Shopping",
-        note: "Discover more stores",
-        url: query => "https://www.google.com/search?tbm=shop&q=" +
-          encodeURIComponent(query)
+
+<script>
+
+const productsContainer =
+  document.getElementById("products");
+
+const form =
+  document.getElementById("searchForm");
+
+const searchInput =
+  document.getElementById("searchInput");
+
+const controls =
+  document.getElementById("controls");
+
+const resultTitle =
+  document.getElementById("resultTitle");
+
+const resultCount =
+  document.getElementById("resultCount");
+
+const sortSelect =
+  document.getElementById("sortSelect");
+
+
+let currentProducts = [];
+
+
+/* DEMO DATA
+
+Later these objects will come
+from marketplace APIs.
+
+*/
+
+const demoProducts = [
+
+  {
+    title:
+      "Stainless Steel Water Bottle 750ml",
+
+    store:
+      "AliExpress",
+
+    price:
+      8.49,
+
+    shipping:
+      2.31,
+
+    rating:
+      4.8,
+
+    reviews:
+      1832,
+
+    image:
+      "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600",
+
+    url:
+      "https://www.aliexpress.com/"
+  },
+
+
+  {
+    title:
+      "Portable Sports Water Bottle",
+
+    store:
+      "Temu",
+
+    price:
+      10.99,
+
+    shipping:
+      0,
+
+    rating:
+      4.7,
+
+    reviews:
+      840,
+
+    image:
+      "https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600",
+
+    url:
+      "https://www.temu.com/"
+  },
+
+
+  {
+    title:
+      "Insulated Stainless Steel Bottle",
+
+    store:
+      "Amazon",
+
+    price:
+      13.99,
+
+    shipping:
+      null,
+
+    rating:
+      4.6,
+
+    reviews:
+      4930,
+
+    image:
+      "https://images.unsplash.com/photo-1604404898184-9d6ad44b2b13?w=600",
+
+    url:
+      "https://www.amazon.com/"
+  },
+
+
+  {
+    title:
+      "Reusable Metal Water Bottle",
+
+    store:
+      "eBay",
+
+    price:
+      11.49,
+
+    shipping:
+      4.50,
+
+    rating:
+      4.5,
+
+    reviews:
+      530,
+
+    image:
+      "https://images.unsplash.com/photo-1610824352934-c10d87b700cc?w=600",
+
+    url:
+      "https://www.ebay.com/"
+  },
+
+
+  {
+    title:
+      "Vacuum Insulated Sports Bottle",
+
+    store:
+      "AliExpress",
+
+    price:
+      7.80,
+
+    shipping:
+      5.20,
+
+    rating:
+      4.9,
+
+    reviews:
+      2301,
+
+    image:
+      "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=600",
+
+    url:
+      "https://www.aliexpress.com/"
+  },
+
+
+  {
+    title:
+      "Minimalist Travel Water Bottle",
+
+    store:
+      "Temu",
+
+    price:
+      12.20,
+
+    shipping:
+      null,
+
+    rating:
+      4.6,
+
+    reviews:
+      342,
+
+    image:
+      "https://images.unsplash.com/photo-1536939459926-301728717817?w=600",
+
+    url:
+      "https://www.temu.com/"
+  }
+
+];
+
+
+
+function totalPrice(product) {
+
+  if(product.shipping === null)
+    return null;
+
+  return product.price +
+         product.shipping;
+
+}
+
+
+
+function money(value) {
+
+  return "$" +
+    value.toFixed(2);
+
+}
+
+
+
+function renderProducts() {
+
+  productsContainer.innerHTML = "";
+
+
+  currentProducts.forEach(
+    product => {
+
+      const total =
+        totalPrice(product);
+
+
+      const shippingText =
+        product.shipping === null
+
+        ? `<span class="unknown">
+             Unknown shipping price
+           </span>`
+
+        : product.shipping === 0
+
+        ? `<span style="color:#16803d;font-weight:700;">
+             FREE
+           </span>`
+
+        : money(product.shipping);
+
+
+      const totalText =
+        total === null
+
+        ? `<span class="unknown">
+             Unknown
+           </span>`
+
+        : `<span class="total-price">
+             ${money(total)}
+           </span>`;
+
+
+      const badge =
+        product.shipping === 0
+
+        ? `<div class="badge">
+             FREE SHIPPING
+           </div>`
+
+        : "";
+
+
+      productsContainer.innerHTML += `
+
+        <article class="product-card">
+
+          <div class="image-box">
+
+            <img
+              src="${product.image}"
+              alt="${product.title}"
+            >
+
+          </div>
+
+
+          <div class="product-body">
+
+            ${badge}
+
+
+            <div class="store">
+              ${product.store}
+            </div>
+
+
+            <div class="product-title">
+              ${product.title}
+            </div>
+
+
+            <div class="rating">
+              ★ ${product.rating}
+              (${product.reviews.toLocaleString()})
+            </div>
+
+
+            <div class="price-row">
+
+              <span>
+                Product
+              </span>
+
+              <strong>
+                ${money(product.price)}
+              </strong>
+
+            </div>
+
+
+            <div class="price-row">
+
+              <span>
+                Shipping
+              </span>
+
+              <span>
+                ${shippingText}
+              </span>
+
+            </div>
+
+
+            <div class="total">
+
+              <div class="total-label">
+                Total price
+              </div>
+
+              ${totalText}
+
+            </div>
+
+
+            <a
+              class="deal-button"
+              href="${product.url}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+
+              View Deal →
+
+            </a>
+
+          </div>
+
+        </article>
+
+      `;
+
+    }
+  );
+
+}
+
+
+
+function sortProducts(type) {
+
+  currentProducts.sort(
+    (a,b) => {
+
+      if(type === "price") {
+
+        return a.price -
+               b.price;
+
       }
-    ];
 
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
 
-      const query = input.value.trim();
-      if (!query) return;
+      if(type === "rating") {
 
-      searchedFor.textContent = 'Product: "' + query + '"';
-      storeList.replaceChildren();
+        return b.rating -
+               a.rating;
 
-      stores.forEach(function (store) {
-        const card = document.createElement("div");
-        card.className = "store";
+      }
 
-        const info = document.createElement("div");
-        const name = document.createElement("div");
-        name.className = "store-name";
-        name.textContent = store.name;
 
-        const note = document.createElement("div");
-        note.className = "store-note";
-        note.textContent = store.note;
+      const totalA =
+        totalPrice(a);
 
-        info.append(name, note);
+      const totalB =
+        totalPrice(b);
 
-        const link = document.createElement("a");
-        link.href = store.url(query);
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "View results";
 
-        card.append(info, link);
-        storeList.append(card);
-      });
+      /*
+      Products with unknown shipping
+      go below products where total
+      price is known.
+      */
 
-      results.style.display = "block";
-      results.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  </script>
+      if(totalA === null &&
+         totalB === null)
+        return a.price - b.price;
+
+
+      if(totalA === null)
+        return 1;
+
+
+      if(totalB === null)
+        return -1;
+
+
+      return totalA -
+             totalB;
+
+    }
+  );
+
+
+  renderProducts();
+
+}
+
+
+
+form.addEventListener(
+  "submit",
+
+  function(event) {
+
+    event.preventDefault();
+
+
+    const query =
+      searchInput.value.trim();
+
+
+    if(!query)
+      return;
+
+
+    controls.style.display =
+      "flex";
+
+
+    resultTitle.textContent =
+      `"${query}"`;
+
+
+    /*
+    TEMPORARY DEMO RESULTS.
+
+    This will be replaced with:
+
+    fetch("/api/search?...")
+
+    when our backend is ready.
+    */
+
+    currentProducts =
+      [...demoProducts];
+
+
+    resultCount.textContent =
+      `${currentProducts.length} offers found`;
+
+
+    sortSelect.value =
+      "total";
+
+
+    sortProducts("total");
+
+  }
+
+);
+
+
+
+sortSelect.addEventListener(
+  "change",
+
+  function() {
+
+    sortProducts(
+      sortSelect.value
+    );
+
+  }
+
+);
+
+</script>
+
+
 </body>
 </html>
