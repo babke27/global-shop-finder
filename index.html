@@ -1,141 +1,287 @@
+
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Shop Finder</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Shop Finder</title>
+  <style>
+    * { box-sizing: border-box; }
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #111;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 100px auto;
-            padding: 20px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 40px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            max-width: 700px;
-            margin: auto;
-        }
-
-        input {
-            flex: 1;
-            padding: 18px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            font-size: 17px;
-        }
-
-        button {
-            padding: 18px 30px;
-            border: none;
-            border-radius: 10px;
-            background: #111;
-            color: white;
-            font-size: 17px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: 0.85;
-        }
-
-        #results {
-            margin-top: 40px;
-        }
-
-        .result {
-            background: white;
-            padding: 20px;
-            margin: 15px auto;
-            border-radius: 12px;
-            max-width: 700px;
-            text-align: left;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-        }
-
-        .result h3 {
-            margin-top: 0;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-
-    <h1>Global Shop Finder</h1>
-
-    <div class="subtitle">
-        Find the best price from stores around the world.
-    </div>
-
-    <div class="search-box">
-        <input 
-            type="text" 
-            id="searchInput" 
-            placeholder="Šta želiš da kupiš?"
-        >
-
-        <button onclick="searchProduct()">
-            Pretraži
-        </button>
-    </div>
-
-    <div id="results"></div>
-
-</div>
-
-<script>
-
-function searchProduct() {
-
-    const query = document.getElementById("searchInput").value;
-
-    if (!query) {
-        alert("Upiši šta želiš da pronađeš.");
-        return;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
     }
 
-    document.getElementById("results").innerHTML = `
-        <div class="result">
-            <h3>🔎 Pretražujemo:</h3>
-            <p>${query}</p>
-            <p>Trenutno povezujemo prodavnice...</p>
-        </div>
-    `;
-}
+    header {
+      padding: 22px 7%;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e9f2;
+      font-weight: 700;
+      font-size: 20px;
+    }
 
-</script>
+    header span { color: #3563e9; }
 
+    main {
+      width: min(900px, 92%);
+      margin: 70px auto;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: clamp(32px, 6vw, 48px);
+      letter-spacing: -1.5px;
+    }
+
+    .intro {
+      color: #657089;
+      font-size: 17px;
+      line-height: 1.6;
+      margin: 0 auto 30px;
+      max-width: 620px;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 17px 18px;
+      border: 1px solid #d8deea;
+      border-radius: 12px;
+      background: white;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #3563e9;
+      box-shadow: 0 0 0 3px #3563e922;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 0 24px;
+      background: #3563e9;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { background: #244bc2; }
+
+    .hint {
+      margin-top: 12px;
+      color: #7b8498;
+      font-size: 13px;
+    }
+
+    #results {
+      display: none;
+      margin-top: 38px;
+      text-align: left;
+    }
+
+    #results h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    #searchedFor {
+      color: #657089;
+      margin-bottom: 20px;
+      overflow-wrap: anywhere;
+    }
+
+    .store-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .store {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px;
+      background: white;
+      border: 1px solid #e2e7f0;
+      border-radius: 14px;
+    }
+
+    .store-name { font-weight: 700; }
+    .store-note {
+      margin-top: 5px;
+      color: #778198;
+      font-size: 13px;
+    }
+
+    .store a {
+      flex-shrink: 0;
+      display: inline-block;
+      padding: 10px 13px;
+      border-radius: 9px;
+      background: #edf2ff;
+      color: #2853d7;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .store a:hover { background: #dfe8ff; }
+
+    .notice {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #fff8e8;
+      color: #795b19;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin-top: 65px;
+      color: #8a93a5;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      main { margin-top: 45px; }
+      form { flex-direction: column; }
+      input, button { min-height: 54px; }
+      .store-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header><span>Global</span> Shop Finder</header>
+
+  <main>
+    <h1>Find products across stores</h1>
+    <p class="intro">
+      Search for a product and compare what different online stores have to offer.
+      Start with one search — then explore the stores.
+    </p>
+
+    <form id="searchForm">
+      <input
+        id="productInput"
+        type="search"
+        placeholder="Try “red water bottle”"
+        aria-label="Product to search for"
+        required
+      >
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="hint">Example: wireless headphones, phone case, water bottle</div>
+
+    <section id="results" aria-live="polite">
+      <h2>Search stores</h2>
+      <div id="searchedFor"></div>
+      <div class="store-list" id="storeList"></div>
+      <div class="notice">
+        These links open each store’s search results. Prices, availability, and
+        shipping to your country must be checked on the store’s website.
+      </div>
+    </section>
+
+    <footer>
+      Global Shop Finder helps you discover products across online stores.<br>
+      Store links may open in a new tab.
+    </footer>
+  </main>
+
+  <script>
+    const form = document.getElementById("searchForm");
+    const input = document.getElementById("productInput");
+    const results = document.getElementById("results");
+    const searchedFor = document.getElementById("searchedFor");
+    const storeList = document.getElementById("storeList");
+
+    const stores = [
+      {
+        name: "AliExpress",
+        note: "Search products",
+        url: query => "https://www.aliexpress.com/w/wholesale-" +
+          encodeURIComponent(query).replace(/%20/g, "-") + ".html"
+      },
+      {
+        name: "Temu",
+        note: "Search products",
+        url: query => "https://www.temu.com/search_result.html?search_key=" +
+          encodeURIComponent(query)
+      },
+      {
+        name: "Amazon",
+        note: "Search products",
+        url: query => "https://www.amazon.com/s?k=" + encodeURIComponent(query)
+      },
+      {
+        name: "eBay",
+        note: "Search products",
+        url: query => "https://www.ebay.com/sch/i.html?_nkw=" +
+          encodeURIComponent(query)
+      },
+      {
+        name: "Google Shopping",
+        note: "Discover more stores",
+        url: query => "https://www.google.com/search?tbm=shop&q=" +
+          encodeURIComponent(query)
+      }
+    ];
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const query = input.value.trim();
+      if (!query) return;
+
+      searchedFor.textContent = 'Product: "' + query + '"';
+      storeList.replaceChildren();
+
+      stores.forEach(function (store) {
+        const card = document.createElement("div");
+        card.className = "store";
+
+        const info = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "store-name";
+        name.textContent = store.name;
+
+        const note = document.createElement("div");
+        note.className = "store-note";
+        note.textContent = store.note;
+
+        info.append(name, note);
+
+        const link = document.createElement("a");
+        link.href = store.url(query);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "View results";
+
+        card.append(info, link);
+        storeList.append(card);
+      });
+
+      results.style.display = "block";
+      results.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  </script>
 </body>
 </html>
