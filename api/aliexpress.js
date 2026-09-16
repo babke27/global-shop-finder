@@ -1,53 +1,71 @@
 import crypto from "crypto";
 
-function aliTimestamp() {
-  const date = new Date(Date.now() + 8 * 60 * 60 * 1000);
-  const pad = n => String(n).padStart(2, "0");
+function getAliTimestamp() {
+  // AliExpress/TOP timestamp uses GMT+8
+  const now = new Date(Date.now() + 8 * 60 * 60 * 1000);
+
+  const pad = (n) => String(n).padStart(2, "0");
 
   return (
-    `${date.getUTCFullYear()}-` +
-    `${pad(date.getUTCMonth() + 1)}-` +
-    `${pad(date.getUTCDate())} ` +
-    `${pad(date.getUTCHours())}:` +
-    `${pad(date.getUTCMinutes())}:` +
-    `${pad(date.getUTCSeconds())}`
+    `${now.getUTCFullYear()}-` +
+    `${pad(now.getUTCMonth() + 1)}-` +
+    `${pad(now.getUTCDate())} ` +
+    `${pad(now.getUTCHours())}:` +
+    `${pad(now.getUTCMinutes())}:` +
+    `${pad(now.getUTCSeconds())}`
   );
 }
 
-function signRequest(params, secret) {
-  const keys = Object.keys(params).sort();
+function createSign(params, secret) {
+  const sortedKeys = Object.keys(params).sort();
 
-  let text = "";
+  let signString = "";
 
-  for (const key of keys) {
+  for (const key of sortedKeys) {
+    const value = params[key];
+
     if (
-      params[key] !== undefined &&
-      params[key] !== null &&
-      params[key] !== ""
+      value !== undefined &&
+      value !== null &&
+      value !== ""
     ) {
-      text += key + params[key];
+      signString += key + value;
     }
   }
 
   return crypto
     .createHmac("md5", secret)
-    .update(text, "utf8")
+    .update(signString, "utf8")
     .digest("hex")
     .toUpperCase();
 }
 
-function numberOrNull(value) {
-  if (value === undefined || value === null || value === "") {
+function toNumber(value) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
     return null;
   }
 
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
 }
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "*"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, OPTIONS"
+  );
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -59,8 +77,13 @@ export default async function handler(req, res) {
     });
   }
 
-  const query = String(req.query.q || "").trim();
-  const country = String(req.query.country || "RS").toUpperCase();
+  const query = String(
+    req.query.q || ""
+  ).trim();
+
+  const country = String(
+    req.query.country || "RS"
+  ).toUpperCase();
 
   if (!query) {
     return res.status(400).json({
@@ -68,30 +91,44 @@ export default async function handler(req, res) {
     });
   }
 
-  const appKey = process.env.ALIEXPRESS_APP_KEY;
-  const appSecret = process.env.ALIEXPRESS_APP_SECRET;
+  const appKey =
+    process.env.ALIEXPRESS_APP_KEY;
+
+  const appSecret =
+    process.env.ALIEXPRESS_APP_SECRET;
 
   if (!appKey || !appSecret) {
     return res.status(500).json({
-      error: "AliExpress credentials are missing"
+      error:
+        "AliExpress API credentials are missing"
     });
   }
 
   try {
     const params = {
-      method: "aliexpress.affiliate.product.query",
+      method:
+        "aliexpress.affiliate.product.query",
+
       app_key: appKey,
+
       sign_method: "hmac",
-      timestamp: aliTimestamp(),
+
+      timestamp: getAliTimestamp(),
+
       format: "json",
+
       v: "2.0",
 
       keywords: query,
+
       page_no: "1",
+
       page_size: "30",
 
       ship_to_country: country,
+
       target_currency: "USD",
+
       target_language: "EN",
 
       fields: [
@@ -109,55 +146,79 @@ export default async function handler(req, res) {
       ].join(",")
     };
 
-    params.sign = signRequest(params, appSecret);
+    params.sign = createSign(
+      params,
+      appSecret
+    );
 
-    const body = new URLSearchParams();
+    const body =
+      new URLSearchParams();
 
-    for (const [key, value] of Object.entries(params)) {
-      body.append(key, String(value));
+    for (
+      const [key, value]
+      of Object.entries(params)
+    ) {
+      body.append(
+        key,
+        String(value)
+      );
     }
 
-    /*
-      AliExpress / TOP overseas gateway.
-    */
     const response = await fetch(
-      "https://api.taobao.com/router/rest",
+      "https://eco.taobao.com/router/rest",
       {
         method: "POST",
+
         headers: {
           "Content-Type":
             "application/x-www-form-urlencoded;charset=UTF-8"
         },
+
         body
       }
     );
 
-    const text = await response.text();
+    const responseText =
+      await response.text();
 
     let data;
 
     try {
-      data = JSON.parse(text);
+      data =
+        JSON.parse(responseText);
     } catch {
       return res.status(500).json({
-        error: "AliExpress returned non-JSON response",
-        status: response.status,
-        response: text.slice(0, 1000)
+        error:
+          "AliExpress returned invalid JSON",
+
+        status:
+          response.status,
+
+        response:
+          responseText.slice(0, 1000)
       });
     }
 
     if (data.error_response) {
+      console.error(
+        "AliExpress API error:",
+        data.error_response
+      );
+
       return res.status(400).json({
-        error: "AliExpress API error",
-        details: data.error_response
+        error:
+          "AliExpress API error",
+
+        details:
+          data.error_response
       });
     }
 
-    const responseObject =
-      data.aliexpress_affiliate_product_query_response;
-
     const result =
-      responseObject?.resp_result?.result;
+      data
+        .aliexpress_affiliate_product_query_response
+        ?.resp_result
+        ?.result;
 
     let rawProducts =
       result?.products?.product ??
@@ -165,80 +226,117 @@ export default async function handler(req, res) {
       [];
 
     if (!Array.isArray(rawProducts)) {
-      rawProducts = rawProducts ? [rawProducts] : [];
+      rawProducts =
+        rawProducts
+          ? [rawProducts]
+          : [];
     }
 
-    const products = rawProducts.map(item => {
-      const price =
-        numberOrNull(item.target_sale_price) ??
-        numberOrNull(item.sale_price);
+    const products =
+      rawProducts.map((item) => {
 
-      const originalPrice =
-        numberOrNull(item.target_original_price) ??
-        numberOrNull(item.original_price);
+        const price =
+          toNumber(
+            item.target_sale_price
+          ) ??
+          toNumber(
+            item.sale_price
+          );
 
-      /*
-        Do NOT assume missing shipping means free shipping.
-      */
-      const shipping = null;
+        const originalPrice =
+          toNumber(
+            item.target_original_price
+          ) ??
+          toNumber(
+            item.original_price
+          );
 
-      return {
-        id: String(item.product_id || ""),
+        // Affiliate product query does not
+        // guarantee an exact shipping price.
+        const shipping = null;
 
-        title:
-          item.product_title ||
-          "AliExpress product",
+        return {
+          id:
+            String(
+              item.product_id || ""
+            ),
 
-        store: "AliExpress",
+          title:
+            item.product_title ||
+            "AliExpress product",
 
-        price,
-        shipping,
+          store:
+            "AliExpress",
 
-        totalPrice:
-          price !== null && shipping !== null
-            ? price + shipping
-            : null,
+          price,
 
-        currency:
-          item.target_sale_price_currency ||
-          "USD",
+          shipping,
 
-        image:
-          item.product_main_image_url ||
-          null,
+          totalPrice: null,
 
-        url:
-          item.promotion_link ||
-          item.product_detail_url ||
-          null,
+          currency:
+            item
+              .target_sale_price_currency ||
+            "USD",
 
-        condition: "New",
+          image:
+            item
+              .product_main_image_url ||
+            null,
 
-        seller: null,
-        sellerFeedback: null,
+          url:
+            item.promotion_link ||
+            item.product_detail_url ||
+            null,
 
-        deliveryStart: null,
-        deliveryEnd: null,
+          condition:
+            "New",
 
-        originalPrice,
+          seller:
+            null,
 
-        commissionRate:
-          item.commission_rate ||
-          null
-      };
-    });
+          sellerFeedback:
+            null,
 
-    products.sort((a, b) => {
-      if (a.price === null && b.price === null) return 0;
-      if (a.price === null) return 1;
-      if (b.price === null) return -1;
+          deliveryStart:
+            null,
 
-      return a.price - b.price;
-    });
+          deliveryEnd:
+            null,
+
+          originalPrice,
+
+          commissionRate:
+            item.commission_rate ||
+            null
+        };
+      });
+
+    products.sort(
+      (a, b) => {
+
+        if (
+          a.price === null &&
+          b.price === null
+        ) {
+          return 0;
+        }
+
+        if (a.price === null) {
+          return 1;
+        }
+
+        if (b.price === null) {
+          return -1;
+        }
+
+        return a.price - b.price;
+      }
+    );
 
     return res.status(200).json({
-      source: "AliExpress",
-      gateway: "overseas",
+      source:
+        "AliExpress",
 
       query,
 
@@ -246,17 +344,24 @@ export default async function handler(req, res) {
         country
       },
 
-      count: products.length,
+      count:
+        products.length,
 
       products
     });
 
   } catch (error) {
-    console.error("AliExpress:", error);
+    console.error(
+      "AliExpress error:",
+      error
+    );
 
     return res.status(500).json({
-      error: "Internal server error",
-      details: error.message
+      error:
+        "Internal server error",
+
+      details:
+        error.message
     });
   }
 }
