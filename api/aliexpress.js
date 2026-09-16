@@ -1,49 +1,48 @@
 import crypto from "crypto";
 
-function getAliTimestamp() {
-  const now = new Date(Date.now() + 8 * 60 * 60 * 1000);
-
-  const pad = (n) => String(n).padStart(2, "0");
+function aliTimestamp() {
+  const date = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, "0");
 
   return (
-    `${now.getUTCFullYear()}-` +
-    `${pad(now.getUTCMonth() + 1)}-` +
-    `${pad(now.getUTCDate())} ` +
-    `${pad(now.getUTCHours())}:` +
-    `${pad(now.getUTCMinutes())}:` +
-    `${pad(now.getUTCSeconds())}`
+    `${date.getUTCFullYear()}-` +
+    `${pad(date.getUTCMonth() + 1)}-` +
+    `${pad(date.getUTCDate())} ` +
+    `${pad(date.getUTCHours())}:` +
+    `${pad(date.getUTCMinutes())}:` +
+    `${pad(date.getUTCSeconds())}`
   );
 }
 
-function createSign(params, secret) {
-  const sortedKeys = Object.keys(params).sort();
+function signRequest(params, secret) {
+  const keys = Object.keys(params).sort();
 
-  let signString = "";
+  let text = "";
 
-  for (const key of sortedKeys) {
+  for (const key of keys) {
     if (
       params[key] !== undefined &&
       params[key] !== null &&
       params[key] !== ""
     ) {
-      signString += key + params[key];
+      text += key + params[key];
     }
   }
 
   return crypto
     .createHmac("md5", secret)
-    .update(signString, "utf8")
+    .update(text, "utf8")
     .digest("hex")
     .toUpperCase();
 }
 
-function toNumber(value) {
+function numberOrNull(value) {
   if (value === undefined || value === null || value === "") {
     return null;
   }
 
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 export default async function handler(req, res) {
@@ -74,7 +73,7 @@ export default async function handler(req, res) {
 
   if (!appKey || !appSecret) {
     return res.status(500).json({
-      error: "AliExpress API credentials are missing"
+      error: "AliExpress credentials are missing"
     });
   }
 
@@ -83,16 +82,17 @@ export default async function handler(req, res) {
       method: "aliexpress.affiliate.product.query",
       app_key: appKey,
       sign_method: "hmac",
-      timestamp: getAliTimestamp(),
+      timestamp: aliTimestamp(),
       format: "json",
       v: "2.0",
 
       keywords: query,
       page_no: "1",
       page_size: "30",
+
+      ship_to_country: country,
       target_currency: "USD",
       target_language: "EN",
-      ship_to_country: country,
 
       fields: [
         "product_id",
@@ -105,22 +105,23 @@ export default async function handler(req, res) {
         "target_sale_price",
         "target_original_price",
         "target_sale_price_currency",
-        "shop_url",
-        "shop_id",
         "commission_rate"
       ].join(",")
     };
 
-    params.sign = createSign(params, appSecret);
+    params.sign = signRequest(params, appSecret);
 
     const body = new URLSearchParams();
 
     for (const [key, value] of Object.entries(params)) {
-      body.append(key, value);
+      body.append(key, String(value));
     }
 
+    /*
+      AliExpress / TOP overseas gateway.
+    */
     const response = await fetch(
-      "https://eco.taobao.com/router/rest",
+      "https://api.taobao.com/router/rest",
       {
         method: "POST",
         headers: {
@@ -131,56 +132,59 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
+    const text = await response.text();
 
-    if (!response.ok) {
-      console.error("AliExpress HTTP error:", data);
+    let data;
 
-      return res.status(response.status).json({
-        error: "AliExpress request failed",
-        details: data
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(500).json({
+        error: "AliExpress returned non-JSON response",
+        status: response.status,
+        response: text.slice(0, 1000)
       });
     }
 
     if (data.error_response) {
-      console.error("AliExpress API error:", data.error_response);
-
       return res.status(400).json({
         error: "AliExpress API error",
         details: data.error_response
       });
     }
 
-    const result =
-      data.aliexpress_affiliate_product_query_response?.resp_result
-        ?.result;
+    const responseObject =
+      data.aliexpress_affiliate_product_query_response;
 
-    const rawProducts =
-      result?.products?.product ||
-      result?.products ||
+    const result =
+      responseObject?.resp_result?.result;
+
+    let rawProducts =
+      result?.products?.product ??
+      result?.products ??
       [];
 
-    const list = Array.isArray(rawProducts)
-      ? rawProducts
-      : rawProducts
-        ? [rawProducts]
-        : [];
+    if (!Array.isArray(rawProducts)) {
+      rawProducts = rawProducts ? [rawProducts] : [];
+    }
 
-    const products = list.map((item) => {
+    const products = rawProducts.map(item => {
       const price =
-        toNumber(item.target_sale_price) ??
-        toNumber(item.sale_price);
+        numberOrNull(item.target_sale_price) ??
+        numberOrNull(item.sale_price);
+
+      const originalPrice =
+        numberOrNull(item.target_original_price) ??
+        numberOrNull(item.original_price);
 
       /*
-        Standard product search does not guarantee that we get
-        an exact destination shipping price.
-
-        NEVER treat missing shipping as free shipping.
+        Do NOT assume missing shipping means free shipping.
       */
       const shipping = null;
 
       return {
         id: String(item.product_id || ""),
+
         title:
           item.product_title ||
           "AliExpress product",
@@ -189,6 +193,7 @@ export default async function handler(req, res) {
 
         price,
         shipping,
+
         totalPrice:
           price !== null && shipping !== null
             ? price + shipping
@@ -215,18 +220,11 @@ export default async function handler(req, res) {
         deliveryStart: null,
         deliveryEnd: null,
 
-        originalPrice:
-          toNumber(item.target_original_price) ??
-          toNumber(item.original_price),
+        originalPrice,
 
         commissionRate:
-          item.commission_rate || null,
-
-        shopId:
-          item.shop_id || null,
-
-        shopUrl:
-          item.shop_url || null
+          item.commission_rate ||
+          null
       };
     });
 
@@ -239,16 +237,22 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({
+      source: "AliExpress",
+      gateway: "overseas",
+
       query,
+
       destination: {
         country
       },
+
       count: products.length,
+
       products
     });
 
   } catch (error) {
-    console.error("AliExpress error:", error);
+    console.error("AliExpress:", error);
 
     return res.status(500).json({
       error: "Internal server error",
