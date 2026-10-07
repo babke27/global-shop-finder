@@ -645,9 +645,9 @@
       <label class="check">
 
         <input
+          id="ebayStore"
           type="checkbox"
           checked
-          disabled
         >
 
         eBay
@@ -655,14 +655,15 @@
       </label>
 
 
-      <label class="check coming">
+      <label class="check">
 
         <input
+          id="aliexpressStore"
           type="checkbox"
-          disabled
+          checked
         >
 
-        AliExpress — coming soon
+        AliExpress
 
       </label>
 
@@ -791,7 +792,10 @@
     document.getElementById("knownShipping");
 
 
+  const ebayStore = document.getElementById("ebayStore");
+  const aliexpressStore = document.getElementById("aliexpressStore");
   let products = [];
+  let searchWarnings = [];
 
 
   function formatMoney(
@@ -880,6 +884,12 @@
 
     sorted.sort(
       (a, b) => {
+        // Never compare numeric amounts across different currencies.
+        const currencyA = a.currency || "USD";
+        const currencyB = b.currency || "USD";
+        if (currencyA !== currencyB) {
+          return currencyA.localeCompare(currencyB);
+        }
 
         if (
           type === "product"
@@ -954,7 +964,11 @@
   function render() {
 
     let list =
-      [...products];
+      products.filter(product => {
+        if (product.store === "eBay") return ebayStore.checked;
+        if (product.store === "AliExpress") return aliexpressStore.checked;
+        return true;
+      });
 
 
     if (
@@ -1511,66 +1525,59 @@
 
 
       try {
+        const params = new URLSearchParams({
+          q: query,
+          country: country.value
+        });
+        const zip = postalCode.value.trim();
+        if (zip) params.set("postalCode", zip);
 
-        const params =
-          new URLSearchParams({
-            q: query,
-            country:
-              country.value
-          });
+        const endpoints = [
+          { name: "eBay", url: `/api/search?${params.toString()}` },
+          { name: "AliExpress", url: `/api/aliexpress?${params.toString()}` }
+        ];
 
+        const responses = await Promise.allSettled(
+          endpoints.map(async endpoint => {
+            const response = await fetch(endpoint.url);
+            const data = await response.json();
+            if (!response.ok) {
+              const detail = data.details;
+              throw new Error(
+                typeof detail === "string" ? detail :
+                (detail?.msg || data.error || `HTTP ${response.status}`)
+              );
+            }
+            return Array.isArray(data.products) ? data.products : [];
+          })
+        );
 
-        const zip =
-          postalCode.value.trim();
+        products = [];
+        searchWarnings = [];
+        responses.forEach((response, index) => {
+          if (response.status === "fulfilled") {
+            products.push(...response.value.map(product => ({
+              ...product,
+              store: product.store || endpoints[index].name
+            })));
+          } else {
+            searchWarnings.push(`${endpoints[index].name}: ${response.reason?.message || "Unavailable"}`);
+          }
+        });
 
-
-        if (zip) {
-
-          params.set(
-            "postalCode",
-            zip
-          );
-
+        if (searchWarnings.length === endpoints.length) {
+          throw new Error(searchWarnings.join("; "));
         }
 
-
-        const response =
-          await fetch(
-            `/api/search?${params.toString()}`
-          );
-
-
-        const data =
-          await response.json();
-
-
-        if (
-          !response.ok
-        ) {
-
-          throw new Error(
-            data.details ||
-            data.error ||
-            "Search failed"
-          );
-
-        }
-
-
-        products =
-          Array.isArray(
-            data.products
-          )
-            ? data.products
-            : [];
-
-
+        const currencies = new Set(
+          products.map(product => product.currency || "USD")
+        );
         resultInfo.textContent =
-          `${products.length} offers found · Shipping destination: ${country.options[country.selectedIndex].text}`;
-
+          `${products.length} offers found · Shipping destination: ${country.options[country.selectedIndex].text}` +
+          (searchWarnings.length ? ` · Unavailable: ${searchWarnings.map(w => w.split(":")[0]).join(", ")}` : "") +
+          (currencies.size > 1 ? " · Mixed currencies: prices are not FX-converted" : "");
 
         render();
-
       }
 
       catch (error) {
@@ -1634,6 +1641,9 @@
     "change",
     render
   );
+
+  ebayStore.addEventListener("change", render);
+  aliexpressStore.addEventListener("change", render);
 
 </script>
 
